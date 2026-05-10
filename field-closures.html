@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HAYSA Field Closures</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+
+<style>
+  body {
+    font-family: system-ui, sans-serif;
+    background:#f4f6fa;
+    margin:0;
+    padding:24px;
+    color:#1a1a1a;
+  }
+
+  header {
+    margin-bottom:20px;
+    padding-bottom:12px;
+    border-bottom:2px solid #d9d9e3;
+  }
+
+  h1 {
+    margin:0;
+    font-size:2rem;
+    letter-spacing:0.5px;
+  }
+
+  .subtitle {
+    margin-top:6px;
+    color:#444;
+    font-size:1rem;
+  }
+
+  .grid {
+    display:grid;
+    grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+    gap:20px;
+    margin-top:20px;
+  }
+
+  .card {
+    background:white;
+    padding:20px;
+    border-radius:12px;
+    border:1px solid #d9d9e3;
+    box-shadow:0 2px 4px rgba(0,0,0,0.05);
+    transition:0.2s ease;
+  }
+
+  .card:hover {
+    transform:translateY(-3px);
+    box-shadow:0 4px 10px rgba(0,0,0,0.08);
+  }
+
+  .field {
+    font-size:1.3rem;
+    font-weight:600;
+    margin-bottom:8px;
+  }
+
+  .pill {
+    display:inline-block;
+    padding:6px 14px;
+    border-radius:20px;
+    font-weight:600;
+    margin-bottom:10px;
+    font-size:0.9rem;
+  }
+
+  .open {
+    background:#e3f5ea;
+    color:#0b7a34;
+  }
+
+  .closed {
+    background:#fde7ea;
+    color:#b00020;
+  }
+
+  .reason {
+    color:#555;
+    font-size:0.95rem;
+    line-height:1.35;
+  }
+
+  .updated {
+    margin-top:30px;
+    color:#666;
+    font-size:0.9rem;
+  }
+</style>
+</head>
+
+<body>
+
+<header>
+  <h1>HAYSA Field Closures</h1>
+  <div class="subtitle">Once a field is closed for the day, it remains closed.</div>
+</header>
+
+<div id="fields" class="grid"></div>
+<div id="updated" class="updated"></div>
+
+<script>
+const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTsaVlrfhmPdXM1n1jWvlAmvW22XlKmYXPXns489laSLePT6ZG9sRx-ta87d7PLbrpntQhpvsRXjP6P/pub?gid=695751706&single=true&output=csv";
+
+fetch(sheetURL)
+  .then(r => r.text())
+  .then(text => {
+    const rows = text.trim().split("\n").map(r => r.split(","));
+    const headers = rows.shift();
+    const data = rows.map(r => Object.fromEntries(r.map((v,i)=>[headers[i], v])));
+
+    const container = document.getElementById("fields");
+    const updated = document.getElementById("updated");
+
+    let latestUpdate = "";
+
+    data.forEach(row => {
+      if (row.LastUpdated > latestUpdate) latestUpdate = row.LastUpdated;
+
+      const card = document.createElement("div");
+      card.className = "card";
+
+      const statusClass = row.Status.toLowerCase() === "closed" ? "closed" : "open";
+
+      card.innerHTML = `
+        <div class="field">${row.Field}</div>
+        <div class="pill ${statusClass}">${row.Status}</div>
+        <div class="reason">${row.Reason || ""}</div>
+      `;
+
+      container.appendChild(card);
+    });
+
+    updated.innerHTML = "Last updated: " + latestUpdate;
+  });
+</script>
+
+</body>
+</html>
