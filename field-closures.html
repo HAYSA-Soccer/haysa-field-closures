@@ -117,13 +117,16 @@ fetch(sheetURL)
 
     data.forEach(row => {
 
-      // Normalize status text aggressively
+      // --- ULTRA-NORMALIZATION ---
       let normalized = row.Status
         .trim()
         .toLowerCase()
-        .replace(/[\u2010-\u2015]/g, " ")  // replace all Unicode hyphens/dashes
-        .replace(/[^a-z0-9 ]/g, " ")      // remove punctuation
-        .replace(/\s+/g, " ");            // collapse spaces
+        // Replace ALL Unicode hyphens/dashes with spaces
+        .replace(/[\u002D\u00AD\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, " ")
+        // Remove punctuation
+        .replace(/[^a-z0-9 ]/g, " ")
+        // Collapse multiple spaces
+        .replace(/\s+/g, " ");
 
       // --- HIDE OFF-SEASON FIELDS ---
       const offSeasonPatterns = [
@@ -186,6 +189,7 @@ fetch(sheetURL)
     updated.innerHTML = `Updated today, ${dateString} at ${timeString}`;
   });
 </script>
+
 
 
 </body>
