@@ -116,15 +116,29 @@ fetch(sheetURL)
     const updated = document.getElementById("updated");
 
     data.forEach(row => {
-      const normalized = row.Status.trim().toLowerCase();
+      // Normalize status text aggressively
+      let normalized = row.Status
+        .trim()
+        .toLowerCase()
+        .replace(/[\u2013\u2014\u2012\-]/g, " ")  // replace hyphens/dashes with space
+        .replace(/\s+/g, " ");                   // collapse multiple spaces
 
       // --- HIDE OFF-SEASON FIELDS ---
-      const isOffSeason =
-        normalized.includes("off") ||
-        normalized.includes("season") ||
-        normalized.includes("not used") ||
-        normalized.includes("n/a") ||
-        normalized.includes("unavailable");
+      const offSeasonPatterns = [
+        "off season",
+        "offseason",
+        "season",
+        "not used",
+        "unused",
+        "n/a",
+        "na",
+        "unavailable",
+        "no games",
+        "spring only",
+        "fall only"
+      ];
+
+      const isOffSeason = offSeasonPatterns.some(p => normalized.includes(p));
 
       if (isOffSeason) {
         return; // Skip rendering this field entirely
@@ -156,12 +170,6 @@ fetch(sheetURL)
       "July","August","September","October","November","December"
     ];
 
-    const today = new Date();
-    const isToday =
-      now.getFullYear() === today.getFullYear() &&
-      now.getMonth() === today.getMonth() &&
-      now.getDate() === today.getDate();
-
     const dayName = dayNames[now.getDay()];
     const monthName = monthNames[now.getMonth()];
     const day = now.getDate();
@@ -174,11 +182,7 @@ fetch(sheetURL)
     const timeString = `${hours}:${minutes} ${ampm}`;
     const dateString = `${dayName}, ${monthName} ${day}`;
 
-    const finalText = isToday
-      ? `Updated today, ${dateString} at ${timeString}`
-      : `Updated ${dateString} at ${timeString}`;
-
-    updated.innerHTML = finalText;
+    updated.innerHTML = `Updated today, ${dateString} at ${timeString}`;
   });
 </script>
 
