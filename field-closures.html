@@ -115,15 +115,14 @@ fetch(sheetURL)
     const container = document.getElementById("fields");
     const updated = document.getElementById("updated");
 
-    let latestUpdate = "";
-
     data.forEach(row => {
-      if (row.LastUpdated > latestUpdate) latestUpdate = row.LastUpdated;
-
       const card = document.createElement("div");
       card.className = "card";
 
-      const statusClass = row.Status.toLowerCase() === "closed" ? "closed" : "open";
+      // Only exact "Open" is green
+      const normalized = row.Status.trim().toLowerCase();
+      const isOpen = normalized === "open";
+      const statusClass = isOpen ? "open" : "closed";
 
       card.innerHTML = `
         <div class="field">${row.Field}</div>
@@ -134,9 +133,42 @@ fetch(sheetURL)
       container.appendChild(card);
     });
 
-    updated.innerHTML = "Last updated: " + latestUpdate;
+    // --- SMART FRIENDLY TIMESTAMP ---
+    const now = new Date();
+
+    const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+    const monthNames = [
+      "January","February","March","April","May","June",
+      "July","August","September","October","November","December"
+    ];
+
+    const today = new Date();
+    const isToday =
+      now.getFullYear() === today.getFullYear() &&
+      now.getMonth() === today.getMonth() &&
+      now.getDate() === today.getDate();
+
+    const dayName = dayNames[now.getDay()];
+    const monthName = monthNames[now.getMonth()];
+    const day = now.getDate();
+
+    // Format time
+    let hours = now.getHours();
+    const minutes = now.getMinutes().toString().padStart(2, "0");
+    const ampm = hours >= 12 ? "PM" : "AM";
+    hours = hours % 12 || 12;
+
+    const timeString = `${hours}:${minutes} ${ampm}`;
+    const dateString = `${dayName}, ${monthName} ${day}`;
+
+    const finalText = isToday
+      ? `Updated today, ${dateString} at ${timeString}`
+      : `Updated ${dateString} at ${timeString}`;
+
+    updated.innerHTML = finalText;
   });
 </script>
+
 
 </body>
 </html>
