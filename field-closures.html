@@ -105,10 +105,39 @@
 <script>
 const sheetURL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTsaVlrfhmPdXM1n1jWvlAmvW22XlKmYXPXns489laSLePT6ZG9sRx-ta87d7PLbrpntQhpvsRXjP6P/pub?gid=695751706&single=true&output=csv";
 
+// --- BULLETPROOF CSV PARSER ---
+function parseCSV(text) {
+  const rows = text.trim().split("\n");
+  return rows.map(row => {
+    const values = [];
+    let current = "";
+    let insideQuotes = false;
+
+    for (let i = 0; i < row.length; i++) {
+      const char = row[i];
+
+      if (char === '"' && row[i + 1] === '"') {
+        current += '"';
+        i++;
+      } else if (char === '"') {
+        insideQuotes = !insideQuotes;
+      } else if (char === ',' && !insideQuotes) {
+        values.push(current.trim());
+        current = "";
+      } else {
+        current += char;
+      }
+    }
+
+    values.push(current.trim());
+    return values;
+  });
+}
+
 fetch(sheetURL)
   .then(r => r.text())
   .then(text => {
-    const rows = text.trim().split("\n").map(r => r.split(","));
+    const rows = parseCSV(text);
     const headers = rows.shift();
     const data = rows.map(r => Object.fromEntries(r.map((v,i)=>[headers[i], v])));
 
@@ -121,11 +150,8 @@ fetch(sheetURL)
       let normalized = row.Status
         .trim()
         .toLowerCase()
-        // Replace ALL Unicode hyphens/dashes with spaces
         .replace(/[\u002D\u00AD\u2010\u2011\u2012\u2013\u2014\u2015\u2212]/g, " ")
-        // Remove punctuation
         .replace(/[^a-z0-9 ]/g, " ")
-        // Collapse multiple spaces
         .replace(/\s+/g, " ");
 
       // --- HIDE OFF-SEASON FIELDS ---
@@ -189,8 +215,6 @@ fetch(sheetURL)
     updated.innerHTML = `Updated today, ${dateString} at ${timeString}`;
   });
 </script>
-
-
 
 </body>
 </html>
