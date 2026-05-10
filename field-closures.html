@@ -116,14 +116,27 @@ fetch(sheetURL)
     const updated = document.getElementById("updated");
 
     data.forEach(row => {
-      const card = document.createElement("div");
-      card.className = "card";
-
-      // --- CLEAN, BULLETPROOF LOGIC ---
       const normalized = row.Status.trim().toLowerCase();
+
+      // --- HIDE OFF-SEASON FIELDS ---
+      const isOffSeason =
+        normalized.includes("off") ||
+        normalized.includes("season") ||
+        normalized.includes("not used") ||
+        normalized.includes("n/a") ||
+        normalized.includes("unavailable");
+
+      if (isOffSeason) {
+        return; // Skip rendering this field entirely
+      }
+
+      // --- DETERMINE OPEN/CLOSED ---
       const isOpen = normalized === "open";
       const statusClass = isOpen ? "open" : "closed";
       const displayText = isOpen ? "OPEN" : "CLOSED";
+
+      const card = document.createElement("div");
+      card.className = "card";
 
       card.innerHTML = `
         <div class="field">${row.Field}</div>
@@ -134,7 +147,7 @@ fetch(sheetURL)
       container.appendChild(card);
     });
 
-    // --- SMART FRIENDLY TIMESTAMP ---
+    // --- FRIENDLY TIMESTAMP ---
     const now = new Date();
 
     const dayNames = ["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -168,8 +181,6 @@ fetch(sheetURL)
     updated.innerHTML = finalText;
   });
 </script>
-
-
 
 </body>
 </html>
